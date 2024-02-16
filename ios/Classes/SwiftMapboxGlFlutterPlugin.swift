@@ -13,7 +13,17 @@ public class SwiftMapboxGlFlutterPlugin: NSObject, FlutterPlugin {
             binaryMessenger: registrar.messenger()
         )
 
-        channel.setMethodCallHandler { methodCall, result in
+         channel.setMethodCallHandler { methodCall, result in
+            
+            // Bugfix where 401 was returned when calling downloadOfflineRegion
+            // before opening the map.
+            // If the accessToken is passed in set it in MGLAccountManager
+            if let args = methodCall.arguments as? [String: Any] {
+                if let token = args["accessToken"] as? String? {
+                    MGLAccountManager.accessToken = token
+                }
+            }
+            
             switch methodCall.method {
             case "setHttpHeaders":
                 guard let arguments = methodCall.arguments as? [String: Any],
