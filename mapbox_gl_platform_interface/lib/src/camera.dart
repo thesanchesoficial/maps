@@ -69,22 +69,46 @@ class CameraPosition {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    if (runtimeType != other.runtimeType) return false;
-    final CameraPosition typedOther = other;
-    return bearing == typedOther.bearing &&
-        target == typedOther.target &&
-        tilt == typedOther.tilt &&
-        zoom == typedOther.zoom;
+  
+    return other is CameraPosition &&
+      other.bearing == bearing &&
+      other.target == target &&
+      other.tilt == tilt &&
+      other.zoom == zoom;
   }
 
   @override
-  int get hashCode => hashValues(bearing, target, tilt, zoom);
+  int get hashCode {
+    return bearing.hashCode ^
+      target.hashCode ^
+      tilt.hashCode ^
+      zoom.hashCode;
+  }
 
   @override
-  String toString() =>
-      'CameraPosition(bearing: $bearing, target: $target, tilt: $tilt, zoom: $zoom)';
+  String toString() {
+    return 'CameraPosition(bearing: $bearing, target: $target, tilt: $tilt, zoom: $zoom)';
+  }
+
+  CameraPosition copyWith({
+    double? bearing,
+    LatLng? target,
+    double? tilt,
+    double? zoom,
+  }) {
+    return CameraPosition(
+      bearing: bearing ?? this.bearing,
+      target: target ?? this.target,
+      tilt: tilt ?? this.tilt,
+      zoom: zoom ?? this.zoom,
+    );
+  }
+
+
+  String toJson() => json.encode(toMap());
+
 }
 
 /// Defines a camera move, supporting absolute moves as well as moves relative
