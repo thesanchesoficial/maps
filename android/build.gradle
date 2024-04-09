@@ -39,6 +39,10 @@ android {
     compileSdkVersion 31
     ndkVersion "20.1.5948944"
 
+    android {
+      namespace 'com.mapbox.mapboxgl'
+    }
+
     defaultConfig {
         minSdkVersion 20
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
