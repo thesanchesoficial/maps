@@ -1,20 +1,24 @@
-plugins {
-    id 'com.android.library'
-}
-
-group 'com.mapbox.mapboxgl'
-version '1.0-SNAPSHOT'
-
 buildscript {
+    ext.kotlin_version = '1.9.0' // Variável para versões
+
     repositories {
         google()
         mavenCentral()
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.1.1' // Atualizado para uma versão moderna
+        classpath 'com.android.tools.build:gradle:8.1.1' // Gradle Plugin moderno
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
+
+plugins {
+    id 'com.android.library' // Biblioteca Android
+    id 'kotlin-android'      // Suporte ao Kotlin
+}
+
+group 'com.mapbox.mapboxgl'
+version '1.0-SNAPSHOT'
 
 android {
     compileSdkVersion 34 // Atualizado para uma versão mais recente
