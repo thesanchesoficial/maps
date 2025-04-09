@@ -17,7 +17,6 @@ import io.flutter.embedding.engine.plugins.activity.ActivityAware;
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding;
 import io.flutter.embedding.engine.plugins.lifecycle.HiddenLifecycleReference;
 import io.flutter.plugin.common.MethodChannel;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /**
  * Plugin for controlling a set of MapboxMap views to be shown as overlays on top of the Flutter
@@ -35,8 +34,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware {
   public MapboxMapsPlugin() {
     // no-op
   }
-
-  // New Plugin APIs
 
   @Override
   public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
@@ -86,111 +83,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware {
     lifecycle = null;
   }
 
-  // Old Plugin APIs
-
-  public static void registerWith(Registrar registrar) {
-    final Activity activity = registrar.activity();
-    if (activity == null) {
-      // When a background flutter view tries to register the plugin, the registrar has no activity.
-      // We stop the registration process as this plugin is foreground only.
-      return;
-    }
-    if (activity instanceof LifecycleOwner) {
-      registrar
-          .platformViewRegistry()
-          .registerViewFactory(
-              VIEW_TYPE,
-              new MapboxMapFactory(
-                  registrar.messenger(),
-                  new LifecycleProvider() {
-                    @Override
-                    public Lifecycle getLifecycle() {
-                      return ((LifecycleOwner) activity).getLifecycle();
-                    }
-                  }));
-    } else {
-      registrar
-          .platformViewRegistry()
-          .registerViewFactory(
-              VIEW_TYPE,
-              new MapboxMapFactory(registrar.messenger(), new ProxyLifecycleProvider(activity)));
-    }
-
-    MethodChannel methodChannel =
-        new MethodChannel(registrar.messenger(), "plugins.flutter.io/mapbox_gl");
-    methodChannel.setMethodCallHandler(new GlobalMethodHandler(registrar));
-  }
-
-  private static final class ProxyLifecycleProvider
-      implements Application.ActivityLifecycleCallbacks, LifecycleOwner, LifecycleProvider {
-
-    private final LifecycleRegistry lifecycle = new LifecycleRegistry(this);
-    private final int registrarActivityHashCode;
-
-    private ProxyLifecycleProvider(Activity activity) {
-      this.registrarActivityHashCode = activity.hashCode();
-      activity.getApplication().registerActivityLifecycleCallbacks(this);
-    }
-
-    @Override
-    public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-      if (activity.hashCode() != registrarActivityHashCode) {
-        return;
-      }
-      lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE);
-    }
-
-    @Override
-    public void onActivityStarted(Activity activity) {
-      if (activity.hashCode() != registrarActivityHashCode) {
-        return;
-      }
-      lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START);
-    }
-
-    @Override
-    public void onActivityResumed(Activity activity) {
-      if (activity.hashCode() != registrarActivityHashCode) {
-        return;
-      }
-      lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME);
-    }
-
-    @Override
-    public void onActivityPaused(Activity activity) {
-      if (activity.hashCode() != registrarActivityHashCode) {
-        return;
-      }
-      lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE);
-    }
-
-    @Override
-    public void onActivityStopped(Activity activity) {
-      if (activity.hashCode() != registrarActivityHashCode) {
-        return;
-      }
-      lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP);
-    }
-
-    @Override
-    public void onActivitySaveInstanceState(Activity activity, Bundle outState) {}
-
-    @Override
-    public void onActivityDestroyed(Activity activity) {
-      if (activity.hashCode() != registrarActivityHashCode) {
-        return;
-      }
-      activity.getApplication().unregisterActivityLifecycleCallbacks(this);
-      lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY);
-    }
-
-    @NonNull
-    @Override
-    public Lifecycle getLifecycle() {
-      return lifecycle;
-    }
-  }
-
   interface LifecycleProvider {
     @Nullable
     Lifecycle getLifecycle();
@@ -198,7 +90,6 @@ public class MapboxMapsPlugin implements FlutterPlugin, ActivityAware {
 
   /** Provides a static method for extracting lifecycle objects from Flutter plugin bindings. */
   public static class FlutterLifecycleAdapter {
-
     /**
      * Returns the lifecycle object for the activity a plugin is bound to.
      *

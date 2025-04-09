@@ -87,31 +87,22 @@ class GlobalMethodHandler implements MethodChannel.MethodCallHandler {
         MapboxHttpRequestUtil.setHttpHeaders(headers, result);
         break;
       case "downloadOfflineRegion":
-        // Get args from caller
         Map<String, Object> definitionMap = (Map<String, Object>) methodCall.argument("definition");
         Map<String, Object> metadataMap = (Map<String, Object>) methodCall.argument("metadata");
         String channelName = methodCall.argument("channelName");
-
-        // Prepare args
-        OfflineChannelHandlerImpl channelHandler =
-            new OfflineChannelHandlerImpl(messenger, channelName);
-
-        // Start downloading
-        OfflineManagerUtils.downloadRegion(
-            result, context, definitionMap, metadataMap, channelHandler);
+        OfflineChannelHandlerImpl channelHandler = new OfflineChannelHandlerImpl(messenger, channelName);
+        OfflineManagerUtils.downloadRegion(result, context, definitionMap, metadataMap, channelHandler);
         break;
       case "getListOfRegions":
         OfflineManagerUtils.regionsList(result, context);
         break;
-      case "updateOfflineRegionMetadata":
-        // Get download region arguments from caller
-        Map<String, Object> metadata = (Map<String, Object>) methodCall.argument("metadata");
-        OfflineManagerUtils.updateRegionMetadata(
-            result, context, methodCall.<Number>argument("id").longValue(), metadata);
-        break;
       case "deleteOfflineRegion":
-        OfflineManagerUtils.deleteRegion(
-            result, context, methodCall.<Number>argument("id").longValue());
+        Number regionId = methodCall.<Number>argument("id");
+        if (regionId == null) {
+          result.error("INVALID_REGION", "Region ID cannot be null", null);
+          return;
+        }
+        OfflineManagerUtils.deleteRegion(result, context, regionId.longValue());
         break;
       default:
         result.notImplemented();
@@ -121,9 +112,11 @@ class GlobalMethodHandler implements MethodChannel.MethodCallHandler {
 
   private void installOfflineMapTiles(String tilesDb) {
     final File dest = new File(context.getFilesDir(), DATABASE_NAME);
-    try (InputStream input = openTilesDbFile(tilesDb);
-        OutputStream output = new FileOutputStream(dest)) {
-      copy(input, output);
+    try {
+      final InputStream input = openTilesDbFile(tilesDb);
+      if (input != null) {
+        copy(input, new FileOutputStream(dest));
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -137,7 +130,7 @@ class GlobalMethodHandler implements MethodChannel.MethodCallHandler {
       if (flutterAssets != null) {
         assetKey = flutterAssets.getAssetFilePathByName(tilesDb);
       } else {
-        throw new IllegalStateException();
+        throw new IllegalStateException("Unable to load asset: " + tilesDb);
       }
       return context.getAssets().open(assetKey);
     }
