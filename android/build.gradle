@@ -1,9 +1,13 @@
 buildscript {
     ext.kotlin_version = '1.9.0' // Variável para versões
+    ext.flutter_version = '3.29.0'
 
     repositories {
         google()
         mavenCentral()
+        maven {
+            url 'https://storage.googleapis.com/download.flutter.io'
+        }
     }
 
     dependencies {
@@ -59,6 +63,9 @@ rootProject.allprojects {
                 password = token
             }
         }
+        maven {
+            url 'https://storage.googleapis.com/download.flutter.io'
+        }
     }
 }
 
@@ -69,4 +76,11 @@ dependencies {
     implementation 'com.mapbox.mapboxsdk:mapbox-android-plugin-offline-v9:0.7.0'
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation 'com.mapbox.mapboxsdk:mapbox-sdk-turf:5.1.0'
+    
+    // Flutter dependencies
+    compileOnly "io.flutter:flutter_embedding_debug:$flutter_version"
+    compileOnly "io.flutter:armeabi_v7a_debug:$flutter_version"
+    compileOnly "io.flutter:arm64_v8a_debug:$flutter_version"
+    compileOnly "io.flutter:x86_64_debug:$flutter_version"
+    compileOnly "io.flutter:x86_debug:$flutter_version"
 }
